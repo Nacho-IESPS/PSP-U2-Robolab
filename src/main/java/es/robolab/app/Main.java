@@ -221,7 +221,7 @@ public final class Main extends JFrame {
         ((CardLayout)visual.getLayout()).show(visual,n==1?"1":"otros");
         canvasRetos.seleccionar(n);
         subtitulo.setText("Reto "+n+" — "+titulos[n]);
-        instrucciones.setText("ARCHIVO A MODIFICAR\\n"+archivos[n]+"\\n\\nOBJETIVO\\n"+objetivos[n]+"\\n\\nNo modificar las pruebas ni el motor.".replace("\\n","\n"));
+        instrucciones.setText("ARCHIVO A MODIFICAR\n"+archivos[n]+"\n\nOBJETIVO\n"+objetivos[n]+"\n\nNo modificar las pruebas ni el motor.");
         resumen.setText("Pendiente de probar");
         informe.setText("Ejecuta las pruebas del reto seleccionado.");
         estado.setText("Reto "+n+" / 5");tiempo.setText("Tiempo: —");
