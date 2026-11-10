@@ -1,47 +1,42 @@
-# RoboLab · PSP · Unidad 2
+# RoboLab · PSP · Unidad 2 · Java 21
 
-Simulador didáctico de concurrencia en **Java 21**, para el módulo de Programación de Servicios y Procesos de 2.º de DAM.
+Aplicación didáctica Swing con **cinco retos independientes de concurrencia** para DAM. Cada reto parte de un código que debe corregir el alumnado.
 
-## Reto 1 — Control de pasillos
+## Cómo empezar
 
-Nueve robots cruzan tres pasillos. En un mismo pasillo nunca deben cruzar dos robots simultáneamente, pero los tres pasillos deben poder funcionar a la vez.
+1. Abre el proyecto Maven en IntelliJ con **JDK 21 o posterior**.
+2. Ejecuta **`es.robolab.app.Main`**.
+3. Selecciona cualquier reto desde el menú de la izquierda.
+4. Ejecuta la simulación y observa el diagrama y el diagnóstico.
+5. Modifica **solo el archivo `Mi*.java` correspondiente** y vuelve a probar.
 
-**ÚNICO ARCHIVO QUE MODIFICA EL ALUMNADO:**
-`src/main/java/es/robolab/retos/reto1/MiControlPasillos.java`
+| Reto | Archivo editable | Concepto | Comprobación |
+| --- | --- | --- | --- |
+| 1. Pasillos | `reto1/MiControlPasillos.java` | `synchronized` | Sin colisiones y con pasillos paralelos |
+| 2. Contadores | `reto2/MiContador.java` | `AtomicInteger` | 16.000 incrementos sin pérdidas |
+| 3. Pedidos | `reto3/MiColaPedidos.java` | `BlockingQueue` | 100 pedidos únicos |
+| 4. Interrupciones | `reto4/MiTareaCancelable.java` | `interrupt()` | Cancelación cooperativa |
+| 5. Ejecutores | `reto5/MiGestorTareas.java` | `ExecutorService` | 8 trabajos correctos y concurrentes |
 
-El reto trabaja los **monitores y `synchronized`**, explicados en el apartado **4.1** de los apuntes UD2. El código del simulador utiliza otras API de Java que **no es necesario comprender ni modificar** para resolver la tarea.
+## Visualización
 
-### Requisitos
+- **Reto 1:** simulación de robots que atraviesan tres pasillos.
+- **Reto 2:** ocho hilos actualizando un contador compartido.
+- **Reto 3:** productores, cola de pedidos y consumidores.
+- **Reto 4:** progreso de una tarea y señal de interrupción.
+- **Reto 5:** ocho tareas gestionadas por un ejecutor.
 
-- Java 21 o posterior.
-- Ejecutar `es.robolab.app.Main` desde IntelliJ, o usar los scripts de `scripts/`.
-- Elegir **Reto 1**, observar la simulación y usar **Ejecutar pruebas**.
-- Consultar las pistas solo cuando sea necesario.
-- No modificar las interfaces, el evaluador ni las pruebas.
+Los diagramas 2–5 **representan el progreso y el resultado medidos por el evaluador**; no son trazas individuales de cada operación.
 
-### Qué comprueban las pruebas
+## Pruebas
 
-- Entregas: 9/9.
-- Seguridad: ninguna coincidencia de dos robots en el mismo pasillo.
-- Concurrencia: al menos dos robots cruzan simultáneamente por pasillos diferentes.
-- Finalización: todas las tareas concluyen.
+- Reto 1: `es.robolab.retos.reto1.PruebasReto1`.
+- Retos 2–5: `es.robolab.PruebasRetos2a5`.
+- Las pruebas fallan con el código inicial: **es lo esperado**.
+- La salida con código 1 indica pruebas no superadas, no un fallo de Java.
 
-**La solución inicial es segura pero demasiado global:** serializa todos los pasillos. Debes sustituir esa sincronización global por la protección específica de cada pasillo.
+## Recursos
 
-### Retos previstos
+El vídeo `referencia/Reto1_Pasillos.mp4` y la captura `referencia/Vista_Referencia.png` están en el ZIP de distribución. Los vídeos de los retos 2–5 aún no se han producido.
 
-1. Control de pasillos — monitores y `synchronized`.
-2. Contadores — `AtomicInteger`.
-3. Pedidos — `BlockingQueue`.
-4. Cancelación — `interrupt()`.
-5. Gestor de trabajos — `ExecutorService`.
-
-La arquitectura deja preparados los menús de los siguientes retos, pero **solo el Reto 1 está implementado**.
-
-### Material de referencia
-
-Los recursos audiovisuales se incluyen en el paquete ZIP de entrega de esta versión. No se publican implementaciones correctas ni archivos compilados con la solución.
-
-### Licencia y autoría
-
-Material docente experimental. Pendiente de asignación de licencia por el titular.
+**Las soluciones del profesor se distribuyen por separado y no están en este repositorio público.**
