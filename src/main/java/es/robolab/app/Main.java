@@ -1,6 +1,7 @@
 package es.robolab.app;
 
 import es.robolab.core.Observador;
+import es.robolab.core.EvaluadorRetos;
 import es.robolab.retos.reto1.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -13,7 +14,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /** Interfaz gráfica suministrada. El alumnado solo modifica MiControlPasillos.java. */
 public final class Main extends JFrame {
     private final CanvasAlmacen canvas = new CanvasAlmacen();
+    private final CanvasRetos canvasRetos = new CanvasRetos();
+    private final JPanel visual = new JPanel(new CardLayout());
+    private final java.util.List<JButton> botonesReto = new java.util.ArrayList<>();
+    private volatile int retoActual=1;
+    private int nivelPista=0;
     private final JTextPane consola = new JTextPane();
+    private JLabel subtitulo;
     private final JLabel resumen = new JLabel("Pendiente de probar", SwingConstants.CENTER);
     private final JTextArea informe = new JTextArea("Pulsa Ejecutar pruebas para ver el diagnóstico.");
     private final JLabel estado = new JLabel("9 robots · 3 pasillos · 3 robots/pasillo");
@@ -58,6 +65,7 @@ public final class Main extends JFrame {
         titulo.setFont(new Font("SansSerif", Font.BOLD, 22));
         titulo.setForeground(new Color(20, 50, 84));
         JLabel subt = new JLabel("Reto 1 — Seguridad y paralelismo en tres pasillos independientes");
+        subtitulo=subt;
         subt.setForeground(new Color(75, 98, 124));
         JPanel textos = new JPanel(new GridLayout(2, 1, 0, 3));
         textos.setOpaque(false);
@@ -75,16 +83,17 @@ public final class Main extends JFrame {
         m.setFont(new Font("SansSerif", Font.BOLD, 14));
         menu.add(m);
         menu.add(Box.createVerticalStrut(18));
-        String[] nombres = {"01  Pasillos ✓", "02  Contadores", "03  Pedidos",
-                "04  Interrupciones", "05  Ejecutores"};
-        for (int i = 0; i < nombres.length; i++) {
-            JLabel l = new JLabel(nombres[i]);
-            l.setOpaque(true);
-            l.setBackground(i == 0 ? new Color(222, 239, 255) : Color.WHITE);
-            l.setForeground(i == 0 ? new Color(28, 85, 157) : new Color(151, 160, 173));
-            l.setMaximumSize(new Dimension(190, 45));
-            l.setBorder(new EmptyBorder(12, 9, 12, 6));
-            menu.add(l);
+        String[] nombres={"01  Pasillos","02  Contadores","03  Pedidos","04  Interrupciones","05  Ejecutores"};
+        for(int i=0;i<nombres.length;i++){
+            final int n=i+1;
+            JButton b=new JButton(nombres[i]);
+            b.setHorizontalAlignment(SwingConstants.LEFT);
+            b.setMaximumSize(new Dimension(190,45));
+            b.setBorder(new EmptyBorder(12,9,12,6));
+            b.setFocusPainted(false);
+            b.addActionListener(e->seleccionar(n));
+            botonesReto.add(b);
+            menu.add(b);
             menu.add(Box.createVerticalStrut(5));
         }
         menu.add(Box.createVerticalGlue());
@@ -96,13 +105,15 @@ public final class Main extends JFrame {
 
         JPanel derecha = new JPanel(new BorderLayout(10, 10));
         derecha.setOpaque(false);
-        derecha.add(canvas, BorderLayout.CENTER);
+        visual.add(canvas,"1");
+        visual.add(canvasRetos,"otros");
+        derecha.add(visual, BorderLayout.CENTER);
         JPanel abajo = new JPanel(new BorderLayout(9, 9));
         abajo.setOpaque(false);
         JPanel controles = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
         controles.setOpaque(false);
-        ejecutar.addActionListener(e -> lanzar(true));
-        probar.addActionListener(e -> lanzar(false));
+        ejecutar.addActionListener(e -> {if(retoActual==1)lanzar(true);else lanzarOtro();});
+        probar.addActionListener(e -> {if(retoActual==1)lanzar(false);else lanzarOtro();});
         pista.addActionListener(e -> revelarPista());
         controles.add(ejecutar);
         controles.add(probar);
@@ -174,6 +185,7 @@ public final class Main extends JFrame {
         instrucciones.setOpaque(false);
         met.add(instrucciones);
         root.add(met, BorderLayout.EAST);
+        seleccionar(1);
         return root;
     }
 
@@ -193,6 +205,70 @@ public final class Main extends JFrame {
                 throw new IllegalStateException(ex);
             }
         });
+    }
+
+    private void seleccionar(int n) {
+        if(ocupado.get()) return;
+        retoActual=n;nivelPista=0;
+        String[] titulos={"","Pasillos independientes","Contador compartido","Fábrica de pedidos","Cancelación de una tarea","Gestor de trabajos"};
+        String[] archivos={"","MiControlPasillos.java","MiContador.java","MiColaPedidos.java","MiTareaCancelable.java","MiGestorTareas.java"};
+        String[] objetivos={"","Evitar colisiones y permitir cruces paralelos.","Contar 16.000 incrementos sin pérdidas.","Entregar 100 pedidos únicos.","Atender una interrupción y detenerse.","Ejecutar 8 trabajos concurrentemente."};
+        for(int i=0;i<botonesReto.size();i++){
+            JButton b=botonesReto.get(i);
+            b.setBackground(i==n-1?new Color(222,239,255):Color.WHITE);
+            b.setForeground(i==n-1?new Color(28,85,157):new Color(95,110,130));
+        }
+        ((CardLayout)visual.getLayout()).show(visual,n==1?"1":"otros");
+        canvasRetos.seleccionar(n);
+        subtitulo.setText("Reto "+n+" — "+titulos[n]);
+        instrucciones.setText("ARCHIVO A MODIFICAR\\n"+archivos[n]+"\\n\\nOBJETIVO\\n"+objetivos[n]+"\\n\\nNo modificar las pruebas ni el motor.".replace("\\n","\n"));
+        resumen.setText("Pendiente de probar");
+        informe.setText("Ejecuta las pruebas del reto seleccionado.");
+        estado.setText("Reto "+n+" / 5");tiempo.setText("Tiempo: —");
+        incidencias.setText("Progreso: 0 %");simultaneos.setText("Resultado: —");
+        setTitle("RoboLab · Reto "+n+" · "+titulos[n]);
+    }
+
+    private void lanzarOtro() {
+        if(!ocupado.compareAndSet(false,true))return;
+        final int n=retoActual;
+        ejecutar.setEnabled(false);probar.setEnabled(false);
+        canvasRetos.seleccionar(n);
+        resumen.setText("Ejecutando...");
+        informe.setText("Pruebas en curso...");
+        log("=== RETO "+n+" ===");
+        new Thread(()->{
+            long inicio=System.nanoTime();
+            EvaluadorRetos.Resultado r=EvaluadorRetos.ejecutar(n,this::log,p->
+                SwingUtilities.invokeLater(()->{
+                    canvasRetos.avanzar(p);
+                    incidencias.setText("Progreso: "+p+" %");
+                }));
+            long ms=java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-inicio);
+            SwingUtilities.invokeLater(()->{
+                canvasRetos.terminar(r.correcto(),r.detalle());
+                resumen.setText(r.correcto()?"✓ PRUEBAS SUPERADAS":"✗ PRUEBAS FALLIDAS");
+                resumen.setBackground(r.correcto()?new Color(220,252,231):new Color(254,226,226));
+                informe.setText(r.detalle());
+                tiempo.setText("Tiempo: "+ms+" ms");
+                simultaneos.setText("Resultado: "+(r.correcto()?"OK":"FALLO"));
+                log(r.detalle());
+                ejecutar.setEnabled(true);probar.setEnabled(true);ocupado.set(false);
+            });
+        },"evaluador-reto-"+n).start();
+    }
+
+    private void revelarPista() {
+        String[][] pistas={{},
+            {"Observa si un robot bloquea un pasillo diferente.","¿Qué recurso compartido debes proteger?","Cada pasillo puede tener un monitor propio."},
+            {"¿Qué ocurre si dos hilos leen el mismo valor?","Incrementar no es una operación indivisible.","Consulta AtomicInteger e incrementAndGet()."},
+            {"¿Qué ocurre si un consumidor llega antes que un productor?","Necesitas una cola segura para varios hilos.","Consulta BlockingQueue, put() y take()."},
+            {"¿Qué significa la interrupción de un hilo?","Thread.sleep() puede lanzar InterruptedException.","Al interrumpirse, el trabajador debe terminar."},
+            {"¿Las tareas se ejecutan en el hilo que llama?","FutureTask.run() se ejecuta síncronamente.","Utiliza ExecutorService para enviar las tareas."}
+        };
+        if(nivelPista<pistas[retoActual].length)
+            log("PISTA "+(++nivelPista)+": "+pistas[retoActual][nivelPista-1]);
+        else log("Ya has consultado las tres pistas.");
     }
 
     private void lanzar(boolean animar) {
@@ -270,9 +346,10 @@ public final class Main extends JFrame {
     }
 
     private void verReferencia() {
+        if(retoActual!=1){log("Vídeo del Reto "+retoActual+" pendiente de producir.");return;}
         File f = new File("referencia/Reto1_Pasillos.mp4");
         if (!f.exists()) {
-            log("El vídeo no está en este repositorio. Utiliza el ZIP de materiales del curso.");
+            log("Vídeo de referencia no disponible para este reto.");
             return;
         }
         try {
