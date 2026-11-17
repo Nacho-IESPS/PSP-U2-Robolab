@@ -2,19 +2,34 @@ package es.robolab.app;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.*;
 
-/**
- * Diagramas didácticos de los retos 2-5.
- * No modifica el estado del ejercicio: representa las mediciones del evaluador.
- */
+/** Representaciones visuales específicas de los retos 2 a 5. */
 public final class CanvasRetos extends JPanel {
     private int reto=2, progreso=0;
+    private final java.util.concurrent.atomic.AtomicIntegerArray avances =
+        new java.util.concurrent.atomic.AtomicIntegerArray(8);
+    private volatile int valorContador = 0;
+    private final java.util.concurrent.atomic.AtomicIntegerArray estadosTarea =
+        new java.util.concurrent.atomic.AtomicIntegerArray(8);
     private boolean finalizado=false, correcto=false;
-    private String detalle="Pendiente de ejecutar";
+    private String detalle="Pendiente";
     private final Color azul=new Color(70,156,255), verde=new Color(57,207,150);
     public CanvasRetos(){setBackground(new Color(17,33,52));}
-    public void seleccionar(int n){reto=n;progreso=0;finalizado=false;detalle="Pendiente de ejecutar";repaint();}
+    public void seleccionar(int n){
+        reto=n;progreso=0;finalizado=false;detalle="Pendiente";
+        for(int i=0;i<8;i++){avances.set(i,0);estadosTarea.set(i,0);}
+        valorContador=0;repaint();
+    }
+    public void avanzarHilo(int hilo,int operaciones){avances.set(hilo,operaciones);}
+    public void estadoTarea(int id,int estado){estadosTarea.set(id,estado);}
+    public int terminadasTarea(){int n=0;for(int i=0;i<8;i++)if(estadosTarea.get(i)==2)n++;return n;}
+    public int activasTarea(){int n=0;for(int i=0;i<8;i++)if(estadosTarea.get(i)==1)n++;return n;}
+    public void valorFinal(int valor){valorContador=valor;repaint();}
+    public int porcentajeReal(){
+        long suma=0;
+        for(int i=0;i<8;i++)suma+=avances.get(i);
+        return (int)(100*suma/80_000_000L);
+    }
     public void avanzar(int n){progreso=Math.max(0,Math.min(100,n));repaint();}
     public void terminar(boolean ok,String resultado){correcto=ok;detalle=resultado;finalizado=true;repaint();}
     private void texto(Graphics2D g,String s,int x,int y,int size,Color c){
@@ -38,11 +53,13 @@ public final class CanvasRetos extends JPanel {
                 int x=35+(i%4)*153,y=95+(i/4)*74;
                 g.setColor(new Color(37,62,88));g.fillRoundRect(x,y,135,54,12,12);
                 texto(g,"HILO "+(i+1),x+12,y+22,13,blanco);
-                barra(g,x+12,y+33,110,8,progreso/100.0,azul);
+                barra(g,x+12,y+33,110,8,avances.get(i)/10_000_000.0,azul);
+                texto(g,(avances.get(i)/1_000_000)+" / 10 M",x+60,y+22,11,gris);
             }
-            texto(g,"8 hilos × 2.000 incrementos = 16.000",36,287,16,blanco);
-            texto(g,finalizado?detalle:"Cada hilo actualiza el mismo contador",36,322,13,finalizado?(correcto?verde:new Color(255,140,130)):gris);
-            texto(g,"Un incremento no atómico puede perder actualizaciones.",36,353,12,gris);
+            texto(g,"8 hilos × 10.000.000 = 80.000.000",36,287,16,blanco);
+            texto(g,"Operaciones completadas: " + porcentajeReal() + " %",36,310,12,gris);
+            texto(g,finalizado?detalle:"Los avances proceden de los hilos reales",36,341,12,finalizado?(correcto?verde:new Color(255,140,130)):gris);
+            texto(g,"Sin pausas artificiales: tiempo dependiente del equipo.",36,371,12,gris);
         }else if(reto==3){
             for(int i=0;i<2;i++){
                 int x=25+i*180;
@@ -75,9 +92,14 @@ public final class CanvasRetos extends JPanel {
                 int x=38+(i%4)*152,y=92+(i/4)*92;
                 g.setColor(new Color(40,65,91));g.fillRoundRect(x,y,130,70,12,12);
                 texto(g,"TAREA "+(i+1),x+13,y+25,14,blanco);
-                barra(g,x+13,y+42,102,11,progreso/100.0,azul);
+                int estado=estadosTarea.get(i);
+                barra(g,x+13,y+42,102,11,estado==2?1:estado==1?0.5:0,
+                      estado==2?verde:estado==1?azul:gris);
+                texto(g,estado==0?"PENDIENTE":estado==1?"EJECUTANDO":"TERMINADA",
+                      x+13,y+63,10,estado==2?verde:gris);
             }
-            texto(g,"8 tareas independientes: deben solaparse en el tiempo",30,314,14,blanco);
+            texto(g,"Terminadas: "+terminadasTarea()+"/8   |   Activas: "+activasTarea(),30,310,14,blanco);
+            texto(g,"8 cálculos reales; sin esperas artificiales",30,333,12,gris);
             texto(g,finalizado?detalle:"Comprobando resultados y simultaneidad",30,354,13,finalizado?(correcto?verde:new Color(255,140,130)):gris);
         }
         if(finalizado){

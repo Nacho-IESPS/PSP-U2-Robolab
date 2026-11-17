@@ -1,7 +1,7 @@
 package es.robolab.core;
 
 public interface Observador {
-    void estado(int robot, int pasillo, double progreso, String descripcion);
-    void mensaje(String texto);
-    void actividad(int activos, int colisiones, int completados);
+    default void estado(int robot, int pasillo, double progreso, String descripcion) {}
+    default void mensaje(String texto) {}
+    default void actividad(int activos, int colisiones, int completados) {}
 }

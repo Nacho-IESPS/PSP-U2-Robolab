@@ -1,21 +1,24 @@
 package es.robolab.retos.reto1;
 
 /**
- * RETO 1 — ÚNICO ARCHIVO QUE DEBES MODIFICAR.
+ * RETO 1 — EDITA SOLO ESTA CLASE.
  *
- * Punto de partida: esta versión evita colisiones, pero obliga a
- * los nueve robots a cruzar de uno en uno.
+ * Versión de partida: es SEGURA, pero demasiado lenta: hace pasar a los robots
+ * de uno en uno incluso cuando utilizan pasillos DIFERENTES.
  *
- * Objetivo: garantizar exclusión mutua por pasillo y permitir que
- * robots de pasillos DIFERENTES crucen a la vez.
+ * Objetivo: que el PASILLO 0 no interfiera con el 1 ni el 2, pero que dentro de
+ * cada pasillo nunca haya dos robots ejecutando paso.avanzar() simultáneamente.
  *
- * No debes modificar las pruebas ni omitir paso.avanzar().
+ * Restricciones: no modificar las pruebas, no omitir ni duplicar paso.avanzar(),
+ * no cambiar el ID del pasillo y no bloquear todos los pasillos con un único monitor.
  */
 public final class MiControlPasillos implements ControlPasillos {
+
     @Override
-    public synchronized void atravesar(int pasilloId, Paso paso)
-            throws InterruptedException {
-        // TODO: sustituye el bloqueo global por exclusión POR PASILLO.
+    public synchronized void atravesar(int pasilloId, Paso paso) throws InterruptedException {
+        // TODO R1: reemplaza la sincronización global por exclusión mutua POR PASILLO.
+        // 'synchronized' impide que dos hilos entren simultáneamente en una sección.
+        // Para este ejercicio debe protegerse solo el recurso realmente compartido.
         paso.avanzar();
     }
 }

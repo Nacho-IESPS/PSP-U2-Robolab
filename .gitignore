@@ -1,6 +1,5 @@
-target/
 out/
-build/
+target/
 .idea/
 *.iml
 *.class

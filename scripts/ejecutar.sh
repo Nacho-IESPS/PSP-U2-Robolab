@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-bash scripts/compilar.sh
-java -cp out es.robolab.app.Main
+cd "$(dirname "$0")/.."
+./scripts/compilar.sh
+java -cp out/classes es.robolab.app.Main

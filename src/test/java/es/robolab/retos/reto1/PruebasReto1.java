@@ -2,19 +2,16 @@ package es.robolab.retos.reto1;
 
 import es.robolab.core.Observador;
 
-/** Pruebas ejecutables sin depender de bibliotecas externas. */
+/** Ejecuta desde IntelliJ como programa Java independiente. */
 public class PruebasReto1 {
     public static void main(String[] args) {
-        Observador silencio = new Observador() {
-            public void estado(int robot, int pasillo, double avance, String estado) {}
-            public void mensaje(String texto) { System.out.println(texto); }
-            public void actividad(int activos, int colisiones, int completados) {}
-        };
-        ResultadoPruebas resultado =
-                EvaluadorPasillos.ejecutar(new MiControlPasillos(), silencio, false);
-        System.out.println(resultado.detalles());
-        System.out.println("Máximo simultáneo: " + resultado.simultaneos());
-        System.out.println("Duración: " + resultado.duracionMs() + " ms");
-        if (!resultado.superadas()) System.exit(1);
+        ResultadoPruebas r = EvaluadorPasillos.ejecutar(new MiControlPasillos(), new Observador(){}, false);
+        System.out.println("=== RETO 1: PRUEBAS PÚBLICAS ===");
+        System.out.println(r.detalles());
+        System.out.println("Cruces simultáneos máximos: " + r.simultaneos());
+        System.out.println("Colisiones/solapes: " + r.solapes());
+        System.out.println("Entregas: " + r.completados() + "/9");
+        System.out.println("Duración: " + r.duracionMs() + " ms (orientativa, no única condición)");
+        if (!r.superadas()) System.exit(1);
     }
 }

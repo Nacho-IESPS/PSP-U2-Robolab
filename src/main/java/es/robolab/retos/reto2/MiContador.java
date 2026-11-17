@@ -1,6 +1,8 @@
 package es.robolab.retos.reto2;
-public class MiContador {
-    private int contador = 0;
-    public void incrementar() { contador++; }
-    public int consultar() { return contador; }
+/** RETO 2: el alumnado modifica únicamente esta clase. */
+public final class MiContador {
+    private int valor = 0;
+    // Implementación inicial NO atómica: pierde actualizaciones concurrentes.
+    public void incrementar() { valor++; }
+    public int consultar() { return valor; }
 }

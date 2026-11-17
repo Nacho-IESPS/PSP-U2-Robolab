@@ -6,18 +6,16 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
-/** Banco público de pruebas. No contiene la solución del reto. */
+/** Banco público de pruebas sobre el contrato. No revela ninguna implementación. */
 public final class EvaluadorPasillos {
     private EvaluadorPasillos() {}
 
     public static ResultadoPruebas ejecutar(ControlPasillos control, Observador obs, boolean animar) {
         final int pasillos = 3, robotsPorPasillo = 3, total = pasillos * robotsPorPasillo;
+        int[] ocupados = new int[pasillos];
         AtomicIntegerArray ocupacion = new AtomicIntegerArray(pasillos);
-        AtomicInteger solapes = new AtomicInteger();
-        AtomicInteger activos = new AtomicInteger();
-        AtomicInteger maxActivos = new AtomicInteger();
-        AtomicInteger completados = new AtomicInteger();
-        AtomicInteger fallos = new AtomicInteger();
+        AtomicInteger solapes = new AtomicInteger(), activos = new AtomicInteger(), maxActivos = new AtomicInteger();
+        AtomicInteger completados = new AtomicInteger(), fallos = new AtomicInteger();
         CountDownLatch inicio = new CountDownLatch(1);
         ExecutorService pool = Executors.newFixedThreadPool(total);
         List<Future<?>> trabajos = new ArrayList<>();
@@ -37,9 +35,9 @@ public final class EvaluadorPasillos {
                             maxActivos.accumulateAndGet(a, Math::max);
                             obs.actividad(a, solapes.get(), completados.get());
                             try {
-                                int cuadros = animar ? 12 : 1;
+                                final int cuadros = animar ? 12 : 1;
                                 for (int t = 1; t <= cuadros; t++) {
-                                    obs.estado(robot, pasillo, (double) t / cuadros, "CRUZANDO");
+                                    obs.estado(robot, pasillo, (double)t / cuadros, "CRUZANDO");
                                     Thread.sleep(animar ? 55 : 220);
                                 }
                             } finally {
@@ -76,22 +74,18 @@ public final class EvaluadorPasillos {
             obs.mensaje("Fallo inesperado: " + e.getCause());
         } finally {
             pool.shutdownNow();
-            try {
-                if (!pool.awaitTermination(2, TimeUnit.SECONDS)) finalizacion = false;
-            } catch (InterruptedException e) {
-                finalizacion = false;
-                Thread.currentThread().interrupt();
-            }
+            try { if (!pool.awaitTermination(2, TimeUnit.SECONDS)) finalizacion = false; }
+            catch (InterruptedException e) { finalizacion = false; Thread.currentThread().interrupt(); }
         }
         long duracion = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - comienzo);
         boolean seguridad = solapes.get() == 0;
         boolean concurrencia = maxActivos.get() >= 2;
         boolean integridad = completados.get() == total && fallos.get() == 0;
         String detalles = "Seguridad: " + (seguridad ? "OK" : "FALLO")
-            + " | Pasillos independientes: " + (concurrencia ? "OK" : "FALLO")
-            + " | 9/9 entregas: " + (integridad ? "OK" : "FALLO")
-            + " | Finalización: " + (finalizacion ? "OK" : "FALLO");
+                + " | Pasillos independientes: " + (concurrencia ? "OK" : "FALLO")
+                + " | 9/9 entregas: " + (integridad ? "OK" : "FALLO")
+                + " | Finalización: " + (finalizacion ? "OK" : "FALLO");
         return new ResultadoPruebas(seguridad, concurrencia, integridad, finalizacion,
-            solapes.get(), maxActivos.get(), completados.get(), duracion, detalles);
+                solapes.get(), maxActivos.get(), completados.get(), duracion, detalles);
     }
 }

@@ -1,3 +1,5 @@
 @echo off
+cd /d "%~dp0.."
 call scripts\compilar.bat
-java -cp out es.robolab.app.Main
+if errorlevel 1 pause & exit /b 1
+java -Dfile.encoding=UTF-8 -cp out\classes es.robolab.app.Main
